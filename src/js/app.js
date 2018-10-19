@@ -63,20 +63,20 @@ App = {
         
         App.contracts.Aposta.deployed().then((i) => {            
             apostaInstance = i;                                
-            return apostaInstance.numeroAlternativa();            
-        }).then((numeroAlternativa) => {            
-            var alternativasResult = $("#timeResult");
-            alternativasResult.empty();
+            return apostaInstance.numeroTime();            
+        }).then((numeroTime) => {            
+            var TimesResult = $("#timeResult");
+            TimesResult.empty();
             var alternativeSelect = $("#timeSelect");
             alternativeSelect.empty();            
-            for(var i = 1; i <= numeroAlternativa; i++){
-                apostaInstance.alternativas(i).then((time) => {                    
+            for(var i = 1; i <= numeroTime; i++){
+                apostaInstance.Times(i).then((time) => {                    
                     var id = time[0];
                     var nome = time[1];
                     var quantia = time[2];
                     var timeTemplate = "<tr><th>" + id + "</th><td>" + nome + "</td><td>" + quantia + "</td></tr>";
 
-                    alternativasResult.append(timeTemplate);
+                    TimesResult.append(timeTemplate);
 
                     var timeOpt = `<option value='${id}'> ${nome} </option>`
                     alternativeSelect.append(timeOpt);

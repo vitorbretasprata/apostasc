@@ -2,25 +2,25 @@ pragma solidity ^0.4.24;
 
 contract Aposta{
 
-    struct Alternativa{
+    struct Time{
         uint ID;
         string nome;
         uint quantiaApostada;
     }  
 
     event apostaEvent (
-        uint indexed _alternativaID
+        uint indexed _TimeID
     ); 
 
-    mapping(uint => Alternativa) public alternativas;
+    mapping(uint => Time) public Times;
 
     mapping(address => bool) public apostadores;
 
-    uint public numeroAlternativa;
+    uint public numeroTime;
 
-    function adicionarAlternativa(string _nome) private {
-        numeroAlternativa++;
-        alternativas[numeroAlternativa] = Alternativa(numeroAlternativa, _nome, 0);
+    function adicionarTime(string _nome) private {
+        numeroTime++;
+        Times[numeroTime] = Time(numeroTime, _nome, 0);
     }
 
     function apostar(uint ID, uint quantia) public {
@@ -29,17 +29,17 @@ contract Aposta{
 
         require(quantia > 0);
 
-        require(ID >= 0 && ID <= numeroAlternativa);
+        require(ID >= 0 && ID <= numeroTime);
 
         apostadores[msg.sender] = true;
 
-        alternativas[ID].quantiaApostada += quantia;
+        Times[ID].quantiaApostada += quantia;
 
         emit apostaEvent(ID);
     }  
 
     constructor() public{
-        adicionarAlternativa('Time A');
-        adicionarAlternativa('Time B');
+        adicionarTime('Time A');
+        adicionarTime('Time B');
     }  
 }
