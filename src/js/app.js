@@ -4,32 +4,26 @@ App = {
     account: '0x0',
     Apostou: false,
 
-    init: function(){
+    init: () => {
         return App.initWeb3();
     },
 
-    initWeb3: function(){
-
+    initWeb3: () => {
         if(typeof web3 !== 'undefined'){
-
             App.web3Provider = web3.currentProvider;
             web3 = new Web3(web3.currentProvider);
         }else{
-
             App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
             web3 = new Web3(App.web3Provider);
         }
         return App.initContract();
     },
 
-    initContract: function(){
-        $.getJSON("Aposta.json", function(aposta){            
-
+    initContract: () => {
+        $.getJSON("Aposta.json", (aposta) => {         
             App.contracts.Aposta = TruffleContract(aposta);
-
             App.contracts.Aposta.setProvider(App.web3Provider);
-            //App.listenForEvents();
-
+            App.listenForEvents();
             return App.render();
         });
     },
@@ -85,7 +79,6 @@ App = {
             return apostaInstance.apostadores(App.account);
         }).catch((err) => {
             console.log({err});
-
         }).then((jaApostou) => {
             if(jaApostou){
                 $('form').hide();
@@ -99,9 +92,9 @@ App = {
 
     Apostar: () => {
         var timeID = $('#timeSelect').val();
-        var quantia = $('#quantiaSelect').val();
-        App.contracts.Aposta.deployed().then((instance) => {
-            return instance.apostar(timeID, quantia, { from: App.account });
+        var quantia = parseInt($('#quantiaSelect').val());        
+        App.contracts.Aposta.deployed().then((instance) => {            
+            return instance.apostar(timeID, { from: App.account, value: web3.toWei(quantia, 'ether') });
         }).then((result) => {
             $("#content").hide();
             $("#loader").show();

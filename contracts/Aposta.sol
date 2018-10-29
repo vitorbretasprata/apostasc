@@ -11,38 +11,38 @@ contract Aposta{
     }  
 
     event apostaEvent (
-        uint indexed _TimeID
+        uint indexed _TimeID        
     ); 
 
-    Oracolo c = new Oracolo();
+    //Oracolo c = new Oracolo();
 
+    function () external payable { }
     mapping(uint => Time) public Times;
 
     mapping(address => bool) public apostadores;
 
     uint public numeroTime;
+    uint public numeroDeApostadores = 0;
 
     function adicionarTime(string _nome) private {
         numeroTime++;
         Times[numeroTime] = Time(numeroTime, _nome, 0);
     }
-
-    function apostar(uint ID, uint quantia) payable {
+    
+    function apostar(uint ID) public payable {
+        
         require(!apostadores[msg.sender]);  
-        require(msg.value > 0.001 ether);
-        require(ID >= 0 && ID <= numeroTime);        
+        require(msg.value > 0.001 ether && msg.value <= 50 ether);
+        require(ID >= 0 && ID <= numeroTime);
+        require(numeroDeApostadores <= 2);
 
-        c.armazenarBalanco(msg.value);
+        uint quantia = msg.value;
         apostadores[msg.sender] = true;
-        Times[ID].quantiaApostada += msg.value;
+        Times[ID].quantiaApostada += quantia;
+        numeroDeApostadores++;
 
         emit apostaEvent(ID);
-    }  
-
-    function TimeVencedor(uint timeID) public returns(string nomeDoTime) {
-        uint ID = c.anunciarTimeVencedor();
-
-    }
+    }    
 
     constructor() public {
         adicionarTime('Time A');
