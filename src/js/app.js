@@ -44,9 +44,11 @@ App = {
         var apostaInstance;
         var loader = $("#loader");
         var content = $("#content");
+        var anunciar = $("#anunciar");
 
         loader.show();
         content.hide();
+        anunciar.hide();
 
         web3.eth.getCoinbase((err, account) => {
             if(err == null){
@@ -58,7 +60,7 @@ App = {
         App.contracts.Aposta.deployed().then((i) => {            
             apostaInstance = i;                                
             return apostaInstance.numeroTime();            
-        }).then((numeroTime) => {            
+        }).then((numeroTime) => {                      
             var TimesResult = $("#timeResult");
             TimesResult.empty();
             var alternativeSelect = $("#timeSelect");
@@ -68,26 +70,37 @@ App = {
                     var id = time[0];
                     var nome = time[1];
                     var quantia = time[2];
-                    var timeTemplate = "<tr><th>" + id + "</th><td>" + nome + "</td><td>" + quantia + "</td></tr>";
+                    var timeTemplate = "<tr><th>" + id + "</th><td>" + nome + "</td><td>" + web3.fromWei(quantia, 'ether') + "</td></tr>";
 
                     TimesResult.append(timeTemplate);
 
                     var timeOpt = `<option value='${id}'> ${nome} </option>`
                     alternativeSelect.append(timeOpt);
                 });
-            }  
-            return apostaInstance.apostadores(App.account);
+            }          
+            return apostaInstance;
         }).catch((err) => {
             console.log({err});
+        }).then((instancia) => {             
+            instancia.numeroDeApostadores().then((numeroApostadores) => {
+                console.log(numeroApostadores); 
+                if(numeroApostadores == 2){                
+                    $('form').hide();
+                    loader.hide();
+                    anunciar.show();
+                    content.show();
+                }
+            });                 
+            return instancia.apostadores(App.account);
+        }).catch((error) => {
+            console.warn("Promisse" + {error});
         }).then((jaApostou) => {
             if(jaApostou){
                 $('form').hide();
             }
             loader.hide();
             content.show();
-        }).catch((error) => {
-            console.warn({error});
-        });        
+        })        
     },
 
     Apostar: () => {
@@ -101,6 +114,10 @@ App = {
         }).catch((err) => {
             console.error(err);
         });
+    },
+
+    Anunciar: () => {
+
     }
 };
 

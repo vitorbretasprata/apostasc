@@ -67,7 +67,7 @@ contract("Aposta", function(accounts){
         return Aposta.deployed().then(function(i){
             instanciaAposta = i;
             timeID = 2;
-            instanciaAposta.apostar(timeID, 5, { from: accounts[3]});
+            instanciaAposta.apostar(timeID, { from: accounts[3], value: web3.fromWei(web3.toWei(5, 'ether'))});
             return instanciaAposta.alternativas(timeID);
         }).then(function(time){
             var quantia = time[2];
@@ -83,6 +83,15 @@ contract("Aposta", function(accounts){
         }).then(function(time){
             var quantia = time[2];
             assert.equal(quantia, 5, "O time B não recebeu nenhuma aposta.");
+        })
+    })
+
+    it("Gerar exceção caso o valor apostador seja fora do limite imposto", () => {
+        return Aposta.deployed().then(i => {
+            instanciaAposta = i;
+            quantia = 51;
+            timeID = 1;
+            instanciaAposta.apostar(timeId, { from: accounts[4], value: web3.fromWei(web3.toWei(quantia, 'ether'))})
         })
     })
 });
