@@ -71,11 +71,14 @@ contract Oracolo{
         return valorArmazenado;     
     }
 
-    function anunciarTimeVencedor(uint8 idTimeVencedor) public returns (uint){
-        address enderecoVencedor = Times[idTimeVencedor].apostador;
+    function anunciarTimeVencedor() public returns (uint){
+        uint timeVencedor = random();
+        timeVencedor++;
+
+        address enderecoVencedor = Times[timeVencedor].apostador;
 
         enderecoVencedor.transfer(valorArmazenado);
-        return valorArmazenado;
+        return timeVencedor;
     }
 
     function random() private view returns (uint){

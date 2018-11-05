@@ -117,7 +117,15 @@ App = {
     },
 
     Anunciar: () => {
+        var resultados = $('#resuldatos');
+        resultados.empty();       
+        App.contracts.Aposta.deployed().then((instance) => {
+            return instance.anunciarTimeVencedor();
+        }).then(resultados => {
+            var resultadosTemplate = `O time vencedor é o time ${resultados}`;
 
+            resultados.append(resultadosTemplate);
+        })
     }
 };
 
