@@ -5,7 +5,8 @@ contract Aposta{
     struct Time{
         uint8 ID;
         string nome;
-        uint quantiaApostada;            
+        uint quantiaApostada;    
+        bool escolhido;        
     }  
 
     event apostaEvent (
@@ -25,7 +26,7 @@ contract Aposta{
 
     function adicionarTime(string _nome) private {
         numeroTime++;
-        Times[numeroTime] = Time(numeroTime, _nome, 0);
+        Times[numeroTime] = Time(numeroTime, _nome, 0, false);
     }    
     
     function apostar(uint8 ID) public payable {
@@ -34,9 +35,11 @@ contract Aposta{
         require(msg.value > 0.001 ether && msg.value <= 50 ether);
         require(ID <= numeroTime);
         require(numeroDeApostadores <= 2);
+        require(!Times[ID].escolhido);
 
         oracolo.armazenarBalanco(msg.value, msg.sender, Times[ID].ID);
 
+        Times[ID].escolhido = true;
         quantia = msg.value;
         apostadores[msg.sender] = true;
         Times[ID].quantiaApostada += quantia;        
@@ -46,8 +49,8 @@ contract Aposta{
     }    
 
     constructor() public {
-        adicionarTime('Time A');
-        adicionarTime('Time B');
+        adicionarTime('Time 1');
+        adicionarTime('Time 2');
     }  
 }
 
