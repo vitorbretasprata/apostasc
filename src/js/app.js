@@ -13,7 +13,7 @@ App = {
             App.web3Provider = web3.currentProvider;
             web3 = new Web3(web3.currentProvider);
         }else{
-            App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+            App.web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:7545');
             web3 = new Web3(App.web3Provider);
         }
         return App.initContract();
@@ -22,10 +22,19 @@ App = {
     initContract: () => {
         $.getJSON("Aposta.json", (aposta) => {         
             App.contracts.Aposta = TruffleContract(aposta);
-            App.contracts.Aposta.setProvider(App.web3Provider);
-            App.listenForEvents();
-            return App.render();
+            App.contracts.Aposta.setProvider(App.web3Provider); 
+            console.log("Success in getting Aposta!");
+            App.listenForEvents(); 
+            
         });
+
+        $.getJSON("Oracolo.json", (oracolo) => {         
+            App.contracts.Oracolo = TruffleContract(oracolo);
+            App.contracts.Oracolo.setProvider(App.web3Provider);   
+            console.log("Success in getting Oracolo!"); 
+            return App.render();         
+        });     
+        
     },
 
     listenForEvents: () => {
@@ -34,8 +43,7 @@ App = {
                 fromBlock: 0,
                 toBlock: 'latest'
             }).watch((error, event) => {
-                console.log("Evento acionado", event)
-                App.render();
+                console.log("Evento acionado em aposta", event);               
             });
         });
     },
@@ -82,8 +90,7 @@ App = {
         }).catch((err) => {
             console.log({err});
         }).then((instancia) => {             
-            instancia.numeroDeApostadores().then((numeroApostadores) => {
-                console.log(numeroApostadores); 
+            instancia.numeroDeApostadores().then((numeroApostadores) => {                
                 if(numeroApostadores == 2){                
                     $('form').hide();
                     loader.hide();
@@ -93,7 +100,7 @@ App = {
             });                 
             return instancia.apostadores(App.account);
         }).catch((error) => {
-            console.warn("Promisse" + {error});
+            console.warn({error});
         }).then((jaApostou) => {
             if(jaApostou){
                 $('form').hide();
@@ -117,14 +124,18 @@ App = {
     },
 
     Anunciar: () => {
-        var resultados = $('#resuldatos');
-        resultados.empty();       
-        App.contracts.Aposta.deployed().then((instance) => {
+        var vencedor = $('#vencedor');
+        var loader = $('#carregador');
+        loader.show();
+        vencedor.hide();  
+        console.log(App.contracts);     
+        App.contracts.Oracolo.deployed().then((instance) => {
             return instance.anunciarTimeVencedor();
-        }).then(resultados => {
-            var resultadosTemplate = `O time vencedor é o time ${resultados}`;
-
-            resultados.append(resultadosTemplate);
+        }).then(resultado => {
+            console.log(resultado)
+            vencedor.html(`O time vencedor é o time ${resultado}`);
+            loader.hide();
+            vencedor.show();
         })
     }
 };
