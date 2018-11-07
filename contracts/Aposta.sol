@@ -23,6 +23,7 @@ contract Aposta{
     uint8 public numeroTime;
     uint8 public numeroDeApostadores = 0;   
     uint private quantia; 
+    uint public balanco;
 
     function adicionarTime(string _nome) private {
         numeroTime++;
@@ -37,7 +38,9 @@ contract Aposta{
         require(numeroDeApostadores <= 2);
         require(!Times[ID].escolhido);
 
-        oracolo.armazenarBalanco(msg.value, msg.sender, Times[ID].ID);
+        balanco = address(this).balance;
+        //address(oracolo).transfer(msg.value);
+        oracolo.armazenarBalanco(msg.sender, ID);
 
         Times[ID].escolhido = true;
         quantia = msg.value;
@@ -59,18 +62,27 @@ contract Oracolo{
     struct Time {
         uint8 ID;
         address apostador;
-    }      
+    }   
+
+    constructor() public {
+        adicionarTime(1);
+        adicionarTime(2);
+    } 
+
+    function adicionarTime(uint8 ID) private {        
+        Times[ID] = Time(ID, msg.sender);
+    } 
 
     mapping(uint => Time) public Times;
 
-    uint private valorArmazenado;
-    uint8 private timeVencedor;
+    uint public valorArmazenado;
+    uint8 public timeVencedor;
 
-    function armazenarBalanco(uint quantia, address apostador, uint8 idTime) public returns (uint){
+    function armazenarBalanco(address apostador, uint8 idTime) public returns (uint){
         Times[idTime].ID = idTime;
         Times[idTime].apostador = apostador;
 
-        valorArmazenado += quantia;   
+        valorArmazenado = address(this).balance;   
         return valorArmazenado;     
     }
 
@@ -80,7 +92,7 @@ contract Oracolo{
 
         address enderecoVencedor = Times[timeVencedor].apostador;
 
-        enderecoVencedor.transfer(valorArmazenado);
+        //address(enderecoVencedor).transfer(valorArmazenado);
         return timeVencedor;
     }
 

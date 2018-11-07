@@ -20,21 +20,18 @@ App = {
     },
 
     initContract: () => {
+        $.getJSON("Oracolo.json", (oracolo) => {
+            App.contracts.Oracolo = TruffleContract(oracolo);
+            App.contracts.Oracolo.setProvider(App.web3Provider);
+        });
+
         $.getJSON("Aposta.json", (aposta) => {         
             App.contracts.Aposta = TruffleContract(aposta);
             App.contracts.Aposta.setProvider(App.web3Provider); 
             console.log("Success in getting Aposta!");
             App.listenForEvents(); 
-            
-        });
-
-        $.getJSON("Oracolo.json", (oracolo) => {         
-            App.contracts.Oracolo = TruffleContract(oracolo);
-            App.contracts.Oracolo.setProvider(App.web3Provider);   
-            console.log("Success in getting Oracolo!"); 
-            return App.render();         
-        });     
-        
+            App.render();
+        });        
     },
 
     listenForEvents: () => {
@@ -43,7 +40,8 @@ App = {
                 fromBlock: 0,
                 toBlock: 'latest'
             }).watch((error, event) => {
-                console.log("Evento acionado em aposta", event);               
+                console.log("Evento acionado em aposta", event);  
+                App.render();             
             });
         });
     },
@@ -63,9 +61,8 @@ App = {
                 App.account = account;                
                 $("#accountAddress").html("Sua conta:" + account);
             }
-        });
-        
-        App.contracts.Aposta.deployed().then((i) => {            
+        });        
+        App.contracts.Aposta.deployed().then((i) => {                       
             apostaInstance = i;                                
             return apostaInstance.numeroTime();            
         }).then((numeroTime) => {                      
@@ -88,7 +85,7 @@ App = {
             }          
             return apostaInstance;
         }).catch((err) => {
-            console.log({err});
+            console.log(err);
         }).then((instancia) => {             
             instancia.numeroDeApostadores().then((numeroApostadores) => {                
                 if(numeroApostadores == 2){                
@@ -100,7 +97,7 @@ App = {
             });                 
             return instancia.apostadores(App.account);
         }).catch((error) => {
-            console.warn({error});
+            console.warn(error);
         }).then((jaApostou) => {
             if(jaApostou){
                 $('form').hide();
@@ -114,8 +111,10 @@ App = {
         var timeID = $('#timeSelect').val();
         var quantia = parseInt($('#quantiaSelect').val());        
         App.contracts.Aposta.deployed().then((instance) => {            
-            return instance.apostar(timeID, { from: App.account, value: web3.toWei(quantia, 'ether') });
-        }).then((result) => {
+        instance.apostar(timeID, { from: App.account, value: web3.toWei(quantia, 'ether') });
+        return instance.balanco();
+        }).then((result) => {  
+            console.log(result);          
             $("#content").hide();
             $("#loader").show();
         }).catch((err) => {
@@ -126,9 +125,21 @@ App = {
     Anunciar: () => {
         var vencedor = $('#vencedor');
         var loader = $('#carregador');
+        var balanco = 0;
         loader.show();
         vencedor.hide();  
-        console.log(App.contracts);     
+        console.log(App.contracts); 
+        App.contracts.Aposta.deployed().then((i) => {
+            oracoloInstance = i;
+            return oracoloInstance.balanco();
+        }).then((bal) => {
+            balanco = bal;
+            console.log("teste " + balanco);
+            return oracoloInstance.Times(2);
+        }).then((time) => {
+            console.log(time[1]);
+        });
+
         App.contracts.Oracolo.deployed().then((instance) => {
             return instance.anunciarTimeVencedor();
         }).then(resultado => {

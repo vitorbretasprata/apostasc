@@ -94,11 +94,11 @@ contract("Aposta", function(accounts){
             timeID = 1;
             return instanciaAposta.apostar(timeID, { from: web3.eth.accounts[5], value: web3.toWei(51, 'ether')});
         }).then(assert.fail).catch((error) => {
-            assert(error.message.indexOf('revert') >= 0, error.message);            
+            assert(error.message.indexOf('revert') >= 0, "Valor fora do limite imposto");            
             timeID = 2;
             return instanciaAposta.apostar(timeID, { from: web3.eth.accounts[4], value: web3.toWei(0.00000010, 'ether')});
         }).then(assert.fail).catch((error) => {
-            assert(error.message.indexOf('revert') >= 0, error.message);
+            assert(error.message.indexOf('revert') >= 0, "Valor fora do limite imposto");
         })
     })
 
@@ -109,11 +109,11 @@ contract("Aposta", function(accounts){
             instanciaAposta.apostar(timeID, { from: web3.eth.accounts[2], value: web3.toWei(2, 'ether')});
             return instanciaAposta.Times(1);
         }).then((time) => {
-            var escolhido = time[3];
-            assert.equal(escolhido, true, escolhido);
-            instanciaAposta.apostar(timeID, { from: web3.eth.accounts[3], value: web3.toWei(2, 'ether')});       
+            var escolhido = time[3];            
+            assert.equal(escolhido, true, "Aposta reslizada no time 1");
+            return instanciaAposta.apostar(timeID, { from: web3.eth.accounts[9], value: web3.toWei(2, 'ether')});       
         }).then(assert.fail).catch((error) => {
-            assert(error.message.indexOf('revert') >= 0, error.message);
+            assert(error.message.indexOf('revert') >= 0, "Valor fora do limite imposto");
         })
     })
 });
