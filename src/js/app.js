@@ -19,12 +19,7 @@ App = {
         return App.initContract();
     },
 
-    initContract: () => {
-        $.getJSON("Oracolo.json", (oracolo) => {
-            App.contracts.Oracolo = TruffleContract(oracolo);
-            App.contracts.Oracolo.setProvider(App.web3Provider);
-        });
-
+    initContract: () => {        
         $.getJSON("Aposta.json", (aposta) => {         
             App.contracts.Aposta = TruffleContract(aposta);
             App.contracts.Aposta.setProvider(App.web3Provider); 
@@ -113,10 +108,10 @@ App = {
         App.contracts.Aposta.deployed().then((instance) => {            
         instance.apostar(timeID, { from: App.account, value: web3.toWei(quantia, 'ether') });
         return instance.balanco();
-        }).then((result) => {  
-            console.log(result);          
+        }).then((result) => {                      
             $("#content").hide();
             $("#loader").show();
+            console.log("O balanço do contrato Aposta: " + result); 
         }).catch((err) => {
             console.error(err);
         });
@@ -124,26 +119,22 @@ App = {
 
     Anunciar: () => {
         var vencedor = $('#vencedor');
-        var loader = $('#carregador');
-        var balanco = 0;
+        var loader = $('#carregador');        
         loader.show();
         vencedor.hide();  
         console.log(App.contracts); 
-        App.contracts.Aposta.deployed().then((i) => {
+        App.contracts.Oracolo.deployed().then((i) => {
             oracoloInstance = i;
-            return oracoloInstance.balanco();
-        }).then((bal) => {
-            balanco = bal;
-            console.log("teste " + balanco);
-            return oracoloInstance.Times(2);
+            return oracoloInstance.Times(1);
         }).then((time) => {
-            console.log(time[1]);
+            var time = time[0];
+            console.log("Balanco do contrato Aposta:" + time);            
         });
 
         App.contracts.Oracolo.deployed().then((instance) => {
             return instance.anunciarTimeVencedor();
         }).then(resultado => {
-            console.log(resultado)
+            console.log("Quantia armazenada no contrato: " + resultado);
             vencedor.html(`O time vencedor é o time ${resultado}`);
             loader.hide();
             vencedor.show();
@@ -156,8 +147,3 @@ $(() => {
       App.init();
     });
   });
-
-  /*
-  best sense neglect immense fall lady
-   adapt material output fiction file clap
-  */

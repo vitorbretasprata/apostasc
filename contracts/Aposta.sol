@@ -1,6 +1,14 @@
 pragma solidity ^0.4.24;
 
 contract Aposta{
+    
+    Oracolo private _instance;
+    
+    constructor() public {
+        _instance = new Oracolo();
+        adicionarTime('Time 1');
+        adicionarTime('Time 2');
+    } 
 
     struct Time{
         uint8 ID;
@@ -10,12 +18,18 @@ contract Aposta{
     }  
 
     event apostaEvent (
-        uint8 indexed _TimeID        
+        uint indexed _TimeID        
     ); 
 
-    Oracolo oracolo = new Oracolo();
-
-    function () external payable { }
+    function () external payable {  }
+    
+    function getBalance() public view returns(uint){
+        return address(this).balance; 
+    }
+    
+    function getBalanceInstance() public view returns(uint){
+        return _instance.getBalance();
+    }
 
     mapping(uint => Time) public Times;
     mapping(address => bool) public apostadores;
@@ -30,17 +44,16 @@ contract Aposta{
         Times[numeroTime] = Time(numeroTime, _nome, 0, false);
     }    
     
-    function apostar(uint8 ID) public payable {
+    function apostar(uint ID) public payable {
         
         require(!apostadores[msg.sender]);  
         require(msg.value > 0.001 ether && msg.value <= 50 ether);
         require(ID <= numeroTime);
         require(numeroDeApostadores <= 2);
         require(!Times[ID].escolhido);
-
-        balanco = address(this).balance;
-        //address(oracolo).transfer(msg.value);
-        oracolo.armazenarBalanco(msg.sender, ID);
+        
+        address(_instance).transfer(msg.value);
+        _instance.armazenarBalanco(msg.sender, ID);
 
         Times[ID].escolhido = true;
         quantia = msg.value;
@@ -49,18 +62,17 @@ contract Aposta{
         numeroDeApostadores++;
 
         emit apostaEvent(ID);
-    }    
-
-    constructor() public {
-        adicionarTime('Time 1');
-        adicionarTime('Time 2');
     }  
+    
+    function getWinner() public returns (uint){
+        return _instance.announceWinner();
+    }
 }
 
 contract Oracolo{
 
     struct Time {
-        uint8 ID;
+        uint ID;
         address apostador;
     }   
 
@@ -69,30 +81,35 @@ contract Oracolo{
         adicionarTime(2);
     } 
 
-    function adicionarTime(uint8 ID) private {        
+    function () public payable { }
+
+    function adicionarTime(uint ID) private {        
         Times[ID] = Time(ID, msg.sender);
     } 
+    
+    function getBalance() public view returns(uint){
+        return address(this).balance;
+    }
 
     mapping(uint => Time) public Times;
 
     uint public valorArmazenado;
-    uint8 public timeVencedor;
+    uint public timeVencedor;
 
-    function armazenarBalanco(address apostador, uint8 idTime) public returns (uint){
+    
+    function armazenarBalanco(address apostador, uint idTime) public {
         Times[idTime].ID = idTime;
         Times[idTime].apostador = apostador;
-
-        valorArmazenado = address(this).balance;   
-        return valorArmazenado;     
     }
+    
 
-    function anunciarTimeVencedor() public returns (uint){
-        uint timeVencedor = random();
+    function announceWinner() public returns (uint){
+        timeVencedor = random();
         timeVencedor++;
-
+        
         address enderecoVencedor = Times[timeVencedor].apostador;
-
-        //address(enderecoVencedor).transfer(valorArmazenado);
+        address(enderecoVencedor).transfer(valorArmazenado);
+        
         return timeVencedor;
     }
 
