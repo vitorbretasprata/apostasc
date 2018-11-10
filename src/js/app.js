@@ -2,7 +2,7 @@ App = {
     web3Provider: null,
     contracts: {},
     account: '0x0',
-    Apostou: false,
+    bet: false,
 
     init: () => {
         return App.initWeb3();
@@ -20,81 +20,91 @@ App = {
     },
 
     initContract: () => {        
-        $.getJSON("Aposta.json", (aposta) => {         
-            App.contracts.Aposta = TruffleContract(aposta);
-            App.contracts.Aposta.setProvider(App.web3Provider); 
-            console.log("Success in getting Aposta!");
+        $.getJSON("BetContract.json", (betContract) => {         
+            App.contracts.BetContract = TruffleContract(betContract);
+            App.contracts.BetContract.setProvider(App.web3Provider); 
+            console.log("Success in getting Bet Contract!");
             App.listenForEvents(); 
             App.render();
         });        
     },
 
     listenForEvents: () => {
-        App.contracts.Aposta.deployed().then((i) => {
-            i.apostaEvent({}, {
+        App.contracts.BetContract.deployed().then((i) => {
+            i.betEvent({}, {
                 fromBlock: 0,
                 toBlock: 'latest'
             }).watch((error, event) => {
-                console.log("Evento acionado em aposta", event);  
+                console.log("Evento fired in Bet Contract", event);  
                 App.render();             
             });
         });
     },
 
     render: () => {
-        var apostaInstance;
+        var betInstance;
         var loader = $("#loader");
         var content = $("#content");
-        var anunciar = $("#anunciar");
+        var announce = $("#announce");
 
         loader.show();
         content.hide();
-        anunciar.hide();
+        announce.hide();
 
         web3.eth.getCoinbase((err, account) => {
             if(err == null){
                 App.account = account;                
-                $("#accountAddress").html("Sua conta:" + account);
+                $("#accountAddress").html(`Your account is: ${account}`);
             }
         });        
-        App.contracts.Aposta.deployed().then((i) => {                       
-            apostaInstance = i;                                
-            return apostaInstance.numeroTime();            
-        }).then((numeroTime) => {                      
-            var TimesResult = $("#timeResult");
-            TimesResult.empty();
-            var alternativeSelect = $("#timeSelect");
-            alternativeSelect.empty();            
-            for(var i = 1; i <= numeroTime; i++){
-                apostaInstance.Times(i).then((time) => {                    
-                    var id = time[0];
-                    var nome = time[1];
-                    var quantia = time[2];
-                    var timeTemplate = "<tr><th>" + id + "</th><td>" + nome + "</td><td>" + web3.fromWei(quantia, 'ether') + "</td></tr>";
+        App.contracts.BetContract.deployed().then((i) => {                       
+            betInstance = i;                                
+            return betInstance.teamNumber();            
+        }).then((teamNumber) => {                      
+            var TeamsResult = $("#teamResult");
+            TeamsResult.empty();
+            var teamSelect = $("#teamSelect");
+            teamSelect.empty();            
+            for(var i = 1; i <= teamNumber; i++){
+                betInstance.Teams(i).then((team) => {                    
+                    var id = team[0];
+                    var name = team[1];
+                    var amount = team[2];
+                    var teamTemplate = `<tr>
+                                            <th>
+                                                ${id} 
+                                            </th>
+                                            <td>
+                                                ${name}
+                                            </td>
+                                            <td>
+                                                ${web3.fromWei(amount, 'ether')}
+                                            </td>
+                                        </tr>`;
 
-                    TimesResult.append(timeTemplate);
+                    TeamsResult.append(teamTemplate);
 
-                    var timeOpt = `<option value='${id}'> ${nome} </option>`
-                    alternativeSelect.append(timeOpt);
+                    var teamOpt = `<option value='${id}'> ${name} </option>`
+                    alternativeSelect.append(teamOpt);
                 });
             }          
-            return apostaInstance;
+            return betInstance;
         }).catch((err) => {
             console.log(err);
-        }).then((instancia) => {             
-            instancia.numeroDeApostadores().then((numeroApostadores) => {                
-                if(numeroApostadores == 2){                
+        }).then((instance) => {             
+            instance.numberOfBettors().then((numberOfBettors) => {                
+                if(numberOfBettors == 2){                
                     $('form').hide();
                     loader.hide();
-                    anunciar.show();
+                    announce.show();
                     content.show();
                 }
             });                 
-            return instancia.apostadores(App.account);
+            return instancia.bettors(App.account);
         }).catch((error) => {
             console.warn(error);
-        }).then((jaApostou) => {
-            if(jaApostou){
+        }).then((alreadyBet) => {
+            if(alreadyBet){
                 $('form').hide();
             }
             loader.hide();
@@ -102,43 +112,33 @@ App = {
         })        
     },
 
-    Apostar: () => {
-        var timeID = $('#timeSelect').val();
-        var quantia = parseInt($('#quantiaSelect').val());        
-        App.contracts.Aposta.deployed().then((instance) => {            
-        instance.apostar(timeID, { from: App.account, value: web3.toWei(quantia, 'ether') });
-        return instance.balanco();
+    Bet: () => {
+        var teamID = $('#teamSelect').val();
+        var amount = parseInt($('#amountSelect').val());        
+        App.contracts.BetContract.deployed().then((instance) => {            
+        instance.Bet(teamID, { from: App.account, value: web3.toWei(amount, 'ether') });
+        return instance.balance();
         }).then((result) => {                      
             $("#content").hide();
             $("#loader").show();
-            console.log("O balanço do contrato Aposta: " + result); 
+            console.log(`The balance of the Bet Contract is: ${result}`); 
         }).catch((err) => {
             console.error(err);
         });
     },
 
-    Anunciar: () => {
-        var vencedor = $('#vencedor');
-        var loader = $('#carregador');        
+    Announce: () => {
+        var winner = $('#winner');
+        var loader = $('#loader2');        
         loader.show();
-        vencedor.hide();  
+        winner.hide();  
         console.log(App.contracts); 
-        App.contracts.Oracolo.deployed().then((i) => {
+        App.contracts.BetContract.deployed().then((i) => {
             oracoloInstance = i;
-            return oracoloInstance.Times(1);
-        }).then((time) => {
-            var time = time[0];
-            console.log("Balanco do contrato Aposta:" + time);            
-        });
-
-        App.contracts.Oracolo.deployed().then((instance) => {
-            return instance.anunciarTimeVencedor();
-        }).then(resultado => {
-            console.log("Quantia armazenada no contrato: " + resultado);
-            vencedor.html(`O time vencedor é o time ${resultado}`);
-            loader.hide();
-            vencedor.show();
-        })
+            return oracoloInstance.getWinner();
+        }).then((winner) => {            
+            console.log(`The winner is the team ${winner}!!!`);            
+        });        
     }
 };
 
