@@ -134,8 +134,8 @@ App = {
         winner.hide();  
         console.log(App.contracts); 
         App.contracts.BetContract.deployed().then((i) => {
-            oracoloInstance = i;
-            return oracoloInstance.getWinner();
+            oracleInstance = i;
+            return oracleInstance.getWinner();
         }).then((winner) => {            
             console.log(`The winner is the team ${winner}!!!`);            
         });        
