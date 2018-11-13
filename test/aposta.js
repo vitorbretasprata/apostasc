@@ -88,7 +88,7 @@ contract("Aposta", function(accounts){
         })
     })
 
-    it("Gerar exceção caso o valor apostador seja fora do limite imposto", () => {
+    it("Generate an exception in case the bet value is greater or lesser than the limit", () => {
         return Aposta.deployed().then(i => {
             instanciaAposta = i;            
             timeID = 1;
@@ -102,7 +102,7 @@ contract("Aposta", function(accounts){
         })
     })
 
-    it("Gerar exceçao caso os dois apostadores apostem no mesmo time", () => {
+    it("Generate an exception in case two bettors bet on the sam team", () => {
         return Aposta.deployed().then(i => {
             instanciaAposta = i;            
             timeID = 1;

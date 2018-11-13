@@ -65,10 +65,18 @@ contract BetContract{
     
     function getWinner() public returns (uint){
         return _instance.announceWinner();
+        selfdestruct(_instance);
     }
     
     function getTeamsInstance(uint8 _id) public view returns (address) {
         return _instance.getBettors(_id);
+    }
+
+    function resetContract() private returns (uint8) {
+        numberOfBettors = 0;
+        teamNumber = 0;
+        addTeam('Team 1');
+        addTeam('Team 2');
     }
 }
 
@@ -80,6 +88,12 @@ contract Oracle{
     }   
 
     constructor() public {
+        addTeam(1);
+        addTeam(2);
+    } 
+
+    function resetContract() internal returns(uint) {
+        Winner = 0;
         addTeam(1);
         addTeam(2);
     } 
