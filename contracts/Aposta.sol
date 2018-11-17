@@ -80,7 +80,7 @@ contract BetContract{
         bettors[Teams[2].punter] = false;
         addTeam('Team 1');
         addTeam('Team 2');
-        delete _instance;
+        _instance = new Oracle();
     }
 }
 
